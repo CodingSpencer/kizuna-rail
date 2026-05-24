@@ -1,3 +1,6 @@
+// Verify line 1 of src/models/model.js looks like this:
+import * as helpers from '../includes/helpers.js';
+
 /**
  * Generates a unique Japan Rail like confirmation code for bookings.
  * @returns {string} A unique confirmation code.

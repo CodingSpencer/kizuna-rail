@@ -24,7 +24,18 @@ export const getListOfSeasons = async () => {
 };
 
 export const getRouteById = async (routeId) => {
-    return db().routes.find(route => route.id == routeId) || null;
+    const route = db().routes.find(route => route.id == routeId);
+    if (!route) return null;
+
+    // Map over the integers array and convert them to text tokens right here!
+    const operatingMonthsFormatted = route.operatingMonths 
+        ? route.operatingMonths.map(getMonthAbbreviation) 
+        : [];
+
+    return {
+        ...route,
+        operatingMonths: operatingMonthsFormatted // Keeps it an array for the EJS loop!
+    };
 };
 
 export const getRoutesByRegion = async (region) => {
@@ -144,24 +155,18 @@ export const getRouteWithSchedules = async (routeId) => {
 };
 
 export const getCompleteRouteDetails = async (routeId) => {
-    const route = await getRouteById(routeId);
+    const route = await getRouteById(routeId); // This now safely returns the string array!
     if (!route) return null;
 
     const startStation = await getStationById(route.startStation);
     const endStation = await getStationById(route.endStation);
     const routeSchedules = await getSchedulesByRoute(routeId);
 
-    // Map over the operatingMonths array (e.g., [1, 2, 3] becomes ["Jan", "Feb", "Mar"])
-    const operatingMonthsFormatted = route.operatingMonths 
-        ? route.operatingMonths.map(getMonthAbbreviation) 
-        : [];
-
     return {
         ...route,
         startStationDetails: startStation,
         endStationDetails: endStation,
-        schedules: routeSchedules,
-        operatingMonthsFormatted // This new property is now cleanly available for your view!
+        schedules: routeSchedules
     };
 };
 
@@ -236,7 +241,8 @@ export const searchRoutes = async (keyword) => {
 export const createConfirmation = async (confirmationData) => {
     const dbObj = db();
     const newConfirmation = {
-        id: helpers.generateConfirmationCode(),
+        // Add "helpers." right here:
+        id: helpers.generateConfirmationCode(), 
         createdAt: new Date().toISOString(),
         ...confirmationData
     };
