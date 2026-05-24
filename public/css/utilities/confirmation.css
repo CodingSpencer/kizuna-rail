@@ -406,14 +406,100 @@ article.confirmation-page {
 }
 
 @media print {
+    @page {
+        size: portrait;
+        margin: 8mm;
+    }
+
+    /* Hide absolutely everything non-essential to core ticket details */
+    header, 
+    footer, 
+    nav, 
+    .nav-buttons,
+    .scenarios-panel,
+    .confirmation-actions,
+    .next-steps,
+    .success-icon,
+    .confirmation-message,
+    article.confirmation-page .important-info {
+        display: none !important;
+    }
+
+    /* Maximize vertical and horizontal canvas usage */
+    html, body, main, article.confirmation-page {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        color: #000 !important;
+        box-shadow: none !important;
+        font-size: 13px !important; /* Globally shrink text size for paper scale */
+    }
+
     article.confirmation-page {
-        .confirmation-actions {
-            display: none;
+        /* Compress the header card tightly */
+        .confirmation-header {
+            background: transparent !important;
+            border: 1.5px dashed var(--clr-primary) !important;
+            padding: var(--space-sm) !important;
+            margin-bottom: var(--space-md) !important;
+            border-radius: var(--radius-md) !important;
+
+            .confirmation-title {
+                font-size: var(--font-size-lg) !important;
+            }
+
+            .booking-reference {
+                margin-top: var(--space-xs) !important;
+                padding: var(--space-xs) var(--space-md) !important;
+                flex-direction: row !important;
+                gap: var(--space-md) !important;
+
+                .reference-number {
+                    font-size: var(--font-size-lg) !important;
+                }
+            }
         }
 
-        .confirmation-header {
-            background-color: white;
-            border: 2px solid var(--clr-primary);
+        .section-title {
+            font-size: var(--font-size-md) !important;
+            margin: 0 0 var(--space-sm) 0 !important;
+            padding-bottom: var(--space-xs) !important;
+        }
+
+        /* Enforce tight, un-splittable content spacing */
+        .booking-details,
+        .passengers-info {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            margin-bottom: var(--space-md) !important;
+        }
+
+        /* Flatten layouts to save space */
+        .booking-details .details-grid {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr) !important; /* Force all 4 detail cards onto 1 line */
+            gap: var(--space-xs) !important;
+        }
+
+        .passengers-info .passengers-list {
+            gap: var(--space-xs) !important;
+            
+            .passenger-details {
+                flex-direction: row !important;
+                padding: var(--space-md) !important;
+                gap: var(--space-lg) !important;
+            }
+        }
+
+        .detail-card, 
+        .passenger-info-card {
+            background: transparent !important;
+            border: 1px solid #000 !important;
+            box-shadow: none !important;
+            padding: var(--space-xs) var(--space-sm) !important;
         }
     }
 }

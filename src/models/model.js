@@ -1,5 +1,11 @@
-import { generateConfirmationCode } from '../includes/helpers.js';
+import * as helpers from '../includes/helpers.js';
 import { getDb as db } from './db-in-file.js';
+
+// Helper to transform month numbers to short abbreviations
+const getMonthAbbreviation = (monthNumber) => {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return months[monthNumber - 1] || '';
+};
 
 // ROUTE MODEL FUNCTIONS
 
@@ -145,11 +151,17 @@ export const getCompleteRouteDetails = async (routeId) => {
     const endStation = await getStationById(route.endStation);
     const routeSchedules = await getSchedulesByRoute(routeId);
 
+    // Map over the operatingMonths array (e.g., [1, 2, 3] becomes ["Jan", "Feb", "Mar"])
+    const operatingMonthsFormatted = route.operatingMonths 
+        ? route.operatingMonths.map(getMonthAbbreviation) 
+        : [];
+
     return {
         ...route,
         startStationDetails: startStation,
         endStationDetails: endStation,
-        schedules: routeSchedules
+        schedules: routeSchedules,
+        operatingMonthsFormatted // This new property is now cleanly available for your view!
     };
 };
 
@@ -159,20 +171,26 @@ export const calculateTicketPrice = async (routeId, className) => {
 
     if (!route || !ticketClass) return null;
 
-    return route.distance * ticketClass.pricePerKm;
+    const priceInYen = route.distance * ticketClass.pricePerKm;
+    return yenToUsd(priceInYen).toFixed(2);
 };
 
 export const getTicketOptionsForRoute = async (routeId) => {
     const route = await getRouteById(routeId);
     if (!route) return null;
 
-    return db().ticketClasses.map(tc => ({
-        class: tc.class,
-        name: tc.name,
-        price: route.distance * tc.pricePerKm,
-        amenities: tc.amenities,
-        description: tc.description
-    }));
+    return db().ticketClasses.map(tc => {
+        const priceInYen = route.distance * tc.pricePerKm;
+        
+        return {
+            class: tc.class,
+            name: tc.name,
+            priceYen: priceInYen, // Kept for reference if needed
+            priceUSD: helpers.yenToUsd(priceInYen).toFixed(2),
+            amenities: tc.amenities,
+            description: tc.description
+        };
+    });
 };
 
 export const getTicketOptionsForSchedule = async (scheduleId) => {
@@ -218,7 +236,7 @@ export const searchRoutes = async (keyword) => {
 export const createConfirmation = async (confirmationData) => {
     const dbObj = db();
     const newConfirmation = {
-        id: generateConfirmationCode(),
+        id: helpers.generateConfirmationCode(),
         createdAt: new Date().toISOString(),
         ...confirmationData
     };
